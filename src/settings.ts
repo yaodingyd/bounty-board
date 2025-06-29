@@ -1,4 +1,4 @@
-import { getAllUserSettings, getAvailableRepositories, getHiddenRepositories, updateMultipleRepositoriesHiddenStatus, updateUserSetting } from './database';
+import { getAllUserSettings, getAvailableRepositories, getHiddenRepositories, updateMultipleRepositoriesHiddenStatus, updateRepositoryHiddenStatus, updateUserSetting } from './database';
 import { Env, GetSettingsResponse, UpdateSettingsRequest, UpdateSettingsResponse } from './types';
 
 export async function handleSettingsAPI(request: Request, env: Env): Promise<Response> {
@@ -122,7 +122,37 @@ async function handleUpdateSettings(request: Request, env: Env, headers: Record<
         });
       }
 
-      // Get all repositories and update their hidden status
+      // Handle single repository update optimization
+      if (requestBody.setting_value.repository_name) {
+        try {
+          const repositoryName = requestBody.setting_value.repository_name;
+          const hiddenRepos = requestBody.setting_value.repositories;
+          const isHidden = hiddenRepos.includes(repositoryName);
+
+          const result = await updateRepositoryHiddenStatus(repositoryName, isHidden, env);
+
+          const response: UpdateSettingsResponse = {
+            success: result.success,
+            message: result.message
+          };
+
+          return new Response(JSON.stringify(response), {
+            status: result.success ? 200 : 400,
+            headers: { ...headers, 'Content-Type': 'application/json' },
+          });
+        } catch (error) {
+          console.error('Error updating single repository hidden status:', error);
+          return new Response(JSON.stringify({
+            success: false,
+            message: 'Failed to update repository visibility'
+          }), {
+            status: 500,
+            headers: { ...headers, 'Content-Type': 'application/json' },
+          });
+        }
+      }
+
+      // Fallback to bulk update for backwards compatibility
       try {
         const allRepos = await getAvailableRepositories(env);
         const hiddenRepos = requestBody.setting_value.repositories;
