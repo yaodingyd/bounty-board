@@ -694,7 +694,7 @@ export async function updateRepositoryHiddenStatus(repositoryName: string, isHid
   try {
     const db = drizzle(env.DB);
 
-    // Update the repository's hidden status
+    // First try to update the repository's hidden status
     const result = await db.update(repositories)
       .set({
         isHidden,
@@ -705,7 +705,27 @@ export async function updateRepositoryHiddenStatus(repositoryName: string, isHid
     // Check if any rows were affected
     const affectedRows = (result as any).changes || 0;
     if (affectedRows === 0) {
-      return { success: false, message: 'Repository not found' };
+      // Repository doesn't exist, create it with the hidden status
+      try {
+        const [owner, repoName] = repositoryName.split('/');
+        await db.insert(repositories)
+          .values({
+            name: repositoryName,
+            owner: owner || repositoryName,
+            repoName: repoName || repositoryName,
+            url: `https://github.com/${repositoryName}`,
+            isActive: true,
+            isHidden: isHidden,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          });
+        
+        console.log(`📚 Created repository ${repositoryName} with hidden status: ${isHidden}`);
+        return { success: true };
+      } catch (insertError) {
+        console.error('Error creating repository:', insertError);
+        return { success: false, message: 'Failed to create repository' };
+      }
     }
 
     console.log(`📚 Repository ${repositoryName} hidden status set to: ${isHidden}`);
