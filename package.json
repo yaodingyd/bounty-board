@@ -1,0 +1,40 @@
+{
+  "name": "bounty-board",
+  "version": "1.0.0",
+  "description": "A Cloudflare Worker app to search and rank GitHub issues with bounties",
+  "main": "dist/index.js",
+  "scripts": {
+    "start": "wrangler dev",
+    "dev": "wrangler dev",
+    "dev:remote": "wrangler dev --remote",
+    "deploy": "wrangler deploy",
+    "deploy:staging": "wrangler deploy --env staging",
+    "deploy:production": "wrangler deploy --env production",
+    "db:create": "wrangler d1 create bounty-board-db",
+    "db:migrate": "wrangler d1 migrations apply bounty-board-db --remote",
+    "db:migrate:local": "wrangler d1 migrations apply bounty-board-db --local",
+    "db:query": "wrangler d1 execute bounty-board-db --command",
+    "db:query:local": "wrangler d1 execute bounty-board-db --local --command",
+    "types:check": "tsc --noEmit",
+    "logs": "wrangler tail"
+  },
+  "keywords": [
+    "cloudflare",
+    "worker",
+    "github",
+    "bounty"
+  ],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.12.1",
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250627.0",
+    "drizzle-kit": "^0.31.4",
+    "node-fetch": "^2.6.7",
+    "typescript": "^5.8.3",
+    "wrangler": "^4.22.0"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.44.2"
+  }
+}

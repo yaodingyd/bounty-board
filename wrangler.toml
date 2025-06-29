@@ -1,0 +1,20 @@
+name = "bounty-board"
+main = "src/index.ts"
+compatibility_date = "2023-06-26"
+compatibility_flags = ["nodejs_compat"]
+
+
+[[d1_databases]]
+binding = "DB"
+database_name = "bounty-board-db"
+database_id = "29f202fa-fa49-4ff2-8c56-847995daa76b"
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+
+[triggers]
+crons = ["0 * * * *"]
+
+[observability.logs]
+enabled = true
